@@ -1,0 +1,25 @@
+--cpu Cortex-M3
+"automatic_temperature_and_humidity_control\startup_stm32f103xb.o"
+"automatic_temperature_and_humidity_control\main.o"
+"automatic_temperature_and_humidity_control\gpio.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_it.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_msp.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_gpio_ex.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_rcc.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_rcc_ex.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_gpio.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_dma.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_cortex.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_pwr.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_flash.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_flash_ex.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_exti.o"
+"automatic_temperature_and_humidity_control\system_stm32f1xx.o"
+"automatic_temperature_and_humidity_control\oled.o"
+"automatic_temperature_and_humidity_control\ds1302.o"
+"automatic_temperature_and_humidity_control\dht11.o"
+--strict --scatter "Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Automatic_temperature_and_humidity_control.map" -o Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control.axf
