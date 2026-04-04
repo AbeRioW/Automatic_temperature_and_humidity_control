@@ -21,8 +21,8 @@ Target DLL:      CMSIS_AGDI.dll V1.33.15.0
 Dialog DLL:      TCM.DLL V1.56.4.0
  
 <h2>Project:</h2>
-C:\Users\Admin\Desktop\Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control\MDK-ARM\Automatic_temperature_and_humidity_control.uvprojx
-Project File Date:  03/22/2026
+C:\Users\Admin\Desktop\0404\Automatic_temperature_and_humidity_control\MDK-ARM\Automatic_temperature_and_humidity_control.uvprojx
+Project File Date:  04/04/2026
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
@@ -30,11 +30,13 @@ Build target 'Automatic_temperature_and_humidity_control'
 compiling main.c...
 ../APP/DHT11.h(19): warning:  #1-D: last line of file ends without a newline
   #endif
-../Core/Src/main.c: 1 warning, 0 errors
+../Core/Src/main.c(368): warning:  #186-D: pointless comparison of unsigned integer with zero
+                  if(currentSettingItem < SETTING_TEMP_MAX)
+../Core/Src/main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=7396 RO-data=6952 RW-data=44 ZI-data=2692  
+Program Size: Code=7756 RO-data=6952 RW-data=72 ZI-data=2688  
 FromELF: creating hex file...
-"Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control.axf" - 0 Error(s), 1 Warning(s).
+"Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 

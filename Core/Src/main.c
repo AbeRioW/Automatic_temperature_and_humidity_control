@@ -55,8 +55,8 @@
 #define KEY4_PRESSED 4
 
 // 阈值默认值
-#define DEFAULT_TEMP_MAX 30  // 默认温度上限
-#define DEFAULT_TEMP_MIN 20  // 默认温度下限
+#define DEFAULT_TEMP_MAX 40  // 默认温度上限
+#define DEFAULT_TEMP_MIN 25  // 默认温度下限
 #define DEFAULT_HUMID_MAX 70 // 默认湿度上限
 /* USER CODE END PD */
 
@@ -88,12 +88,34 @@ uint8_t tempMax = DEFAULT_TEMP_MAX;  // 温度上限
 uint8_t tempMin = DEFAULT_TEMP_MIN;  // 温度下限
 uint8_t humidMax = DEFAULT_HUMID_MAX; // 湿度上限
 
+// 设置界面当前选中的项目
+#define SETTING_TEMP_MAX 0  // 温度上限
+#define SETTING_TEMP_MIN 1  // 温度下限
+#define SETTING_HUMID_MAX 2 // 湿度上限
+uint8_t currentSettingItem = SETTING_TEMP_MAX; // 当前选中的设置项
+
 // 按键状态
 uint8_t keyPressed = 0; // 记录按键状态
+uint8_t keyPressFlag = 0; // 按键按下标志（用于中断）
+uint32_t keyPressTime = 0; // 按键按下时间
 
 // 系统启动状态
 uint8_t systemReady = 0; // 系统就绪标志
 uint32_t startupCounter = 0; // 启动计数器
+
+// 上次数据（用于按需刷新）
+DS1302_Time lastTime;
+DHT11_Data lastDht11Data;
+uint8_t lastInterface = INTERFACE_MAIN;
+uint8_t lastMode = MODE_AUTO;
+uint8_t lastHeaterStatus = DEVICE_OFF;
+uint8_t lastCoolerStatus = DEVICE_OFF;
+uint8_t lastFanStatus = DEVICE_OFF;
+uint8_t lastWuhuaStatus = DEVICE_OFF;
+uint8_t lastTempMax = DEFAULT_TEMP_MAX;
+uint8_t lastTempMin = DEFAULT_TEMP_MIN;
+uint8_t lastHumidMax = DEFAULT_HUMID_MAX;
+uint8_t lastSettingItem = SETTING_TEMP_MAX;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -270,6 +292,20 @@ void DrawSettingInterface(void)
     sprintf((char*)timeStr, "Humid Max: %d%%", humidMax);
     OLED_ShowString(0, 32, timeStr, 8, 1);
     
+    // 显示当前选中的设置项
+    switch(currentSettingItem)
+    {
+        case SETTING_TEMP_MAX:
+            OLED_ShowString(100, 0, (uint8_t*)"->", 8, 1);
+            break;
+        case SETTING_TEMP_MIN:
+            OLED_ShowString(100, 16, (uint8_t*)"->", 8, 1);
+            break;
+        case SETTING_HUMID_MAX:
+            OLED_ShowString(100, 32, (uint8_t*)"->", 8, 1);
+            break;
+    }
+    
     OLED_ShowString(0, 48, (uint8_t*)"KEY1:Prev KEY2:Next", 8, 1);
     OLED_ShowString(0, 56, (uint8_t*)"KEY3:Down KEY4:Up", 8, 1);
     
@@ -304,6 +340,7 @@ void ProcessKeyPress(uint8_t key)
             {
                 // 切换到设置界面
                 currentInterface = INTERFACE_SETTING;
+                currentSettingItem = SETTING_TEMP_MAX; // 重置为第一项
             }
             else if(key == KEY3_PRESSED)
             {
@@ -326,27 +363,57 @@ void ProcessKeyPress(uint8_t key)
         case INTERFACE_SETTING:
             if(key == KEY1_PRESSED)
             {
-                // 切换到设备界面
-                currentInterface = INTERFACE_DEVICE;
+                // 切换到上一个设置项
+                currentSettingItem--;
+                if(currentSettingItem < SETTING_TEMP_MAX)
+                {
+                    // 已经到第一项，回到设备界面
+                    currentInterface = INTERFACE_DEVICE;
+                    currentSettingItem = SETTING_TEMP_MAX; // 重置为第一项
+                }
             }
             else if(key == KEY2_PRESSED)
             {
-                // 切换到主界面
-                currentInterface = INTERFACE_MAIN;
+                // 切换到下一个设置项
+                currentSettingItem++;
+                if(currentSettingItem > SETTING_HUMID_MAX)
+                {
+                    // 已经到最后一项，退出设置界面回到主界面
+                    currentInterface = INTERFACE_MAIN;
+                    currentSettingItem = SETTING_TEMP_MAX; // 重置为第一项
+                }
             }
             else if(key == KEY3_PRESSED)
             {
-                // 减少阈值
-                if(tempMax > 20) tempMax--;
-                else if(tempMin > 10) tempMin--;
-                else if(humidMax > 30) humidMax--;
+                // 减少当前选中的阈值
+                switch(currentSettingItem)
+                {
+                    case SETTING_TEMP_MAX:
+                        if(tempMax > 20) tempMax--;
+                        break;
+                    case SETTING_TEMP_MIN:
+                        if(tempMin > 10) tempMin--;
+                        break;
+                    case SETTING_HUMID_MAX:
+                        if(humidMax > 30) humidMax--;
+                        break;
+                }
             }
             else if(key == KEY4_PRESSED)
             {
-                // 增加阈值
-                if(tempMax < 50) tempMax++;
-                else if(tempMin < tempMax - 5) tempMin++;
-                else if(humidMax < 99) humidMax++;
+                // 增加当前选中的阈值
+                switch(currentSettingItem)
+                {
+                    case SETTING_TEMP_MAX:
+                        if(tempMax < 50) tempMax++;
+                        break;
+                    case SETTING_TEMP_MIN:
+                        if(tempMin < tempMax - 5) tempMin++;
+                        break;
+                    case SETTING_HUMID_MAX:
+                        if(humidMax < 99) humidMax++;
+                        break;
+                }
             }
             break;
     }
@@ -384,12 +451,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-	 HAL_GPIO_WritePin(GPIOB, LAY_COLD_Pin|LAY_FAN_Pin|LAY_WUHUA_Pin, GPIO_PIN_RESET);
-	 HAL_GPIO_WritePin(LAY_HOT_GPIO_Port, LAY_HOT_Pin, GPIO_PIN_RESET);
-	 
-  OLED_Init();
-  DS1302_Init();
-  DHT11_Init();
   
   // 初始化继电器引脚为输出
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -413,11 +474,21 @@ int main(void)
   GPIO_InitStruct.Pin = LAY_WUHUA_Pin;
   HAL_GPIO_Init(LAY_WUHUA_GPIO_Port, &GPIO_InitStruct);
   
-  // 初始状态：关闭所有设备
-  ControlDevice(1, DEVICE_OFF);
-  ControlDevice(2, DEVICE_OFF);
-  ControlDevice(3, DEVICE_OFF);
-  ControlDevice(4, DEVICE_OFF);
+  // 上电默认拉低，确保设备处于关闭状态
+  HAL_GPIO_WritePin(LAY_HOT_GPIO_Port, LAY_HOT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LAY_COLD_GPIO_Port, LAY_COLD_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LAY_FAN_GPIO_Port, LAY_FAN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LAY_WUHUA_GPIO_Port, LAY_WUHUA_Pin, GPIO_PIN_RESET);
+  
+  // 初始化设备状态变量
+  heaterStatus = DEVICE_OFF;
+  coolerStatus = DEVICE_OFF;
+  fanStatus = DEVICE_OFF;
+  wuhuaStatus = DEVICE_OFF;
+  
+  OLED_Init();
+  DS1302_Init();
+  DHT11_Init();
   
 //  OLED_ShowString(0,0,(uint8_t*)"hello",8,1);
 //  OLED_Refresh();
@@ -440,27 +511,147 @@ int main(void)
     }
     
     // 处理按键（由中断触发）
-    if(keyPressed != 0)
+    if(keyPressFlag != 0)
     {
-        ProcessKeyPress(keyPressed);
-        keyPressed = 0; // 清除按键状态
+        // 立即更新按键时间戳（防止重复触发）
+        uint32_t currentTime = HAL_GetTick();
+        
+        // 检查是否已经过了消抖时间（50ms）
+        if(currentTime - keyPressTime > 50)
+        {
+            // 确认按键仍然按下
+            uint8_t validKey = 0;
+            if(keyPressFlag == KEY1_PRESSED && HAL_GPIO_ReadPin(KEY1_GPIO_Port, KEY1_Pin) == GPIO_PIN_RESET)
+            {
+                validKey = KEY1_PRESSED;
+            }
+            else if(keyPressFlag == KEY2_PRESSED && HAL_GPIO_ReadPin(KEY2_GPIO_Port, KEY2_Pin) == GPIO_PIN_RESET)
+            {
+                validKey = KEY2_PRESSED;
+            }
+            else if(keyPressFlag == KEY3_PRESSED && HAL_GPIO_ReadPin(KEY3_GPIO_Port, KEY3_Pin) == GPIO_PIN_RESET)
+            {
+                validKey = KEY3_PRESSED;
+            }
+            else if(keyPressFlag == KEY4_PRESSED && HAL_GPIO_ReadPin(KEY4_GPIO_Port, KEY4_Pin) == GPIO_PIN_RESET)
+            {
+                validKey = KEY4_PRESSED;
+            }
+            
+            // 如果按键有效，处理按键事件
+            if(validKey != 0)
+            {
+                ProcessKeyPress(validKey);
+            }
+            
+            // 清除按键标志（无论是否有效）
+            keyPressFlag = 0;
+            // 更新时间戳，防止短时间内重复触发
+            keyPressTime = currentTime;
+        }
+        // 即使消抖时间不够，也要清除标志，避免卡死
+        else
+        {
+            keyPressFlag = 0;
+        }
+    }
+    else
+    {
+        // 没有按键按下时，持续更新按键时间戳
+        keyPressTime = HAL_GetTick();
     }
     
     // 自动控制逻辑
     AutoControlLogic();
     
-    // 根据当前界面绘制显示
+    // 按需刷新：只在数据变化时刷新显示
+    uint8_t needRefresh = 0;
+    
+    // 检查界面是否变化
+    if(currentInterface != lastInterface)
+    {
+        needRefresh = 1;
+        lastInterface = currentInterface;
+    }
+    
+    // 根据当前界面检查数据变化
     switch(currentInterface)
     {
         case INTERFACE_MAIN:
-            DrawMainInterface();
+            // 检查时间变化（只检查秒）
+            if(currentTime.second != lastTime.second ||
+               currentTime.minute != lastTime.minute ||
+               currentTime.hour != lastTime.hour ||
+               currentTime.date != lastTime.date ||
+               currentTime.month != lastTime.month ||
+               currentTime.year != lastTime.year)
+            {
+                needRefresh = 1;
+                lastTime = currentTime;
+            }
+            
+            // 检查温湿度变化
+            if(dht11Data.temperature != lastDht11Data.temperature ||
+               dht11Data.humidity != lastDht11Data.humidity)
+            {
+                needRefresh = 1;
+                lastDht11Data = dht11Data;
+            }
+            
+            // 检查工作模式变化
+            if(currentMode != lastMode)
+            {
+                needRefresh = 1;
+                lastMode = currentMode;
+            }
             break;
+            
         case INTERFACE_DEVICE:
-            DrawDeviceInterface();
+            // 检查设备状态变化
+            if(heaterStatus != lastHeaterStatus ||
+               coolerStatus != lastCoolerStatus ||
+               fanStatus != lastFanStatus ||
+               wuhuaStatus != lastWuhuaStatus)
+            {
+                needRefresh = 1;
+                lastHeaterStatus = heaterStatus;
+                lastCoolerStatus = coolerStatus;
+                lastFanStatus = fanStatus;
+                lastWuhuaStatus = wuhuaStatus;
+            }
             break;
+            
         case INTERFACE_SETTING:
-            DrawSettingInterface();
+            // 检查阈值变化
+            if(tempMax != lastTempMax ||
+               tempMin != lastTempMin ||
+               humidMax != lastHumidMax ||
+               currentSettingItem != lastSettingItem)
+            {
+                needRefresh = 1;
+                lastTempMax = tempMax;
+                lastTempMin = tempMin;
+                lastHumidMax = humidMax;
+                lastSettingItem = currentSettingItem;
+            }
             break;
+    }
+    
+    // 只有在需要刷新时才绘制显示
+    if(needRefresh)
+    {
+        switch(currentInterface)
+        {
+            case INTERFACE_MAIN:
+                DrawMainInterface();
+                break;
+            case INTERFACE_DEVICE:
+                DrawDeviceInterface();
+                break;
+            case INTERFACE_SETTING:
+                DrawSettingInterface();
+                break;
+        }
     }
     
     HAL_Delay(100); // 100ms刷新一次
@@ -519,33 +710,22 @@ void SystemClock_Config(void)
   */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    // 延时消抖
-    for(volatile uint32_t i = 0; i < 100000; i++);
-    
-    // 检查按键状态并等待释放
-    if(GPIO_Pin == KEY1_Pin && HAL_GPIO_ReadPin(KEY1_GPIO_Port, KEY1_Pin) == GPIO_PIN_RESET)
+    // 只设置标志位，不在中断中做任何延时或等待
+    if(GPIO_Pin == KEY1_Pin)
     {
-        keyPressed = KEY1_PRESSED;
-        // 等待按键释放
-        while(HAL_GPIO_ReadPin(KEY1_GPIO_Port, KEY1_Pin) == GPIO_PIN_RESET);
+        keyPressFlag = KEY1_PRESSED;
     }
-    else if(GPIO_Pin == KEY2_Pin && HAL_GPIO_ReadPin(KEY2_GPIO_Port, KEY2_Pin) == GPIO_PIN_RESET)
+    else if(GPIO_Pin == KEY2_Pin)
     {
-        keyPressed = KEY2_PRESSED;
-        // 等待按键释放
-        while(HAL_GPIO_ReadPin(KEY2_GPIO_Port, KEY2_Pin) == GPIO_PIN_RESET);
+        keyPressFlag = KEY2_PRESSED;
     }
-    else if(GPIO_Pin == KEY3_Pin && HAL_GPIO_ReadPin(KEY3_GPIO_Port, KEY3_Pin) == GPIO_PIN_RESET)
+    else if(GPIO_Pin == KEY3_Pin)
     {
-        keyPressed = KEY3_PRESSED;
-        // 等待按键释放
-        while(HAL_GPIO_ReadPin(KEY3_GPIO_Port, KEY3_Pin) == GPIO_PIN_RESET);
+        keyPressFlag = KEY3_PRESSED;
     }
-    else if(GPIO_Pin == KEY4_Pin && HAL_GPIO_ReadPin(KEY4_GPIO_Port, KEY4_Pin) == GPIO_PIN_RESET)
+    else if(GPIO_Pin == KEY4_Pin)
     {
-        keyPressed = KEY4_PRESSED;
-        // 等待按键释放
-        while(HAL_GPIO_ReadPin(KEY4_GPIO_Port, KEY4_Pin) == GPIO_PIN_RESET);
+        keyPressFlag = KEY4_PRESSED;
     }
 }
 
