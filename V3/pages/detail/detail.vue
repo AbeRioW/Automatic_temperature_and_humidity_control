@@ -25,17 +25,15 @@
 				<!-- 湿度数据显示 -->
 				<view class="dev-data">{{humi}} %</view>
 			</view>
-	
 
+		</view>
 
-
-
-			<!-- 状态显示区域 -->
-			<!--<view class="current-action">
-				<text>当前动作: {{currentAction}}</text>
-				<text>; 变量 Car_flag: {{Car_flag}}</text>
-			</view>-->
-
+		<!-- 趋势图区域 -->
+		<view class="chart-area">
+			<view class="chart-title">温度湿度趋势</view>
+			<view class="chart-container">
+				<canvas canvas-id="trendChart" style="width:100%;height:300px;"></canvas>
+			</view>
 		</view>
 		
 		<!-- 运动控制区域 -->
@@ -59,6 +57,7 @@
 		createCommonToken
 	} = require('@/key.js')
 
+
 	// 产品ID和设备名称要替换成自己的
 	const product_id = 'dU5jVg1L9b';
 	const device_name = 'test';
@@ -69,8 +68,8 @@
 		data() {
 			return {
 				// 温度、湿度状态
-			temperature: '--',
-			humi: '--',
+				temperature: '--',
+				humi: '--',
 				// 接口请求token
 				token: '',
 				// 湿度和温度的阈值
@@ -83,7 +82,22 @@
 				currentAction: '待命',
 				key_th: {},
 				// 数据更新定时器
-				dataTimer: null
+				dataTimer: null,
+				// 图表相关
+				chart: null,
+				chartData: {
+					categories: [],
+					series: [
+						{
+							name: '温度',
+							data: []
+						},
+						{
+							name: '湿度',
+							data: []
+						}
+					]
+				}
 			}
 		},
 
@@ -96,6 +110,8 @@
 				user_id: '486732', //用户ID
 			}
 			this.token = createCommonToken(params);
+			// 初始化图表
+			this.initChart();
 		},
 
 		// 页面显示时执行的钩子函数
@@ -115,6 +131,168 @@
 
 		// 方法部分
 		methods: {
+			// 初始化图表
+			initChart() {
+				// 图表初始化已在updateChart中处理
+			},
+
+			// 更新图表数据
+			updateChart() {
+				const ctx = uni.createCanvasContext('trendChart');
+				const canvasWidth = uni.upx2px(750);
+				const canvasHeight = uni.upx2px(300);
+
+				// 清空画布
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+				// 绘制背景
+				ctx.fillStyle = '#ffffff';
+				ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+				// 绘制标题
+				ctx.fillStyle = '#6d6d6d';
+				ctx.font = '16px Arial';
+				ctx.textAlign = 'center';
+				ctx.fillText('温度湿度趋势', canvasWidth / 2, 20);
+
+				// 绘制坐标轴
+				ctx.strokeStyle = '#cccccc';
+				ctx.lineWidth = 1;
+
+				// X轴
+				ctx.beginPath();
+				ctx.moveTo(50, canvasHeight - 50);
+				ctx.lineTo(canvasWidth - 50, canvasHeight - 50);
+				ctx.stroke();
+
+				// Y轴（温度）
+				ctx.beginPath();
+				ctx.moveTo(50, 30);
+				ctx.lineTo(50, canvasHeight - 50);
+				ctx.stroke();
+
+				// Y轴（湿度）
+				ctx.beginPath();
+				ctx.moveTo(canvasWidth - 50, 30);
+				ctx.lineTo(canvasWidth - 50, canvasHeight - 50);
+				ctx.stroke();
+
+				// 绘制数据点和线条
+				if (this.chartData.series[0].data.length > 0) {
+					// 温度数据 - 先绘制线条
+					ctx.strokeStyle = '#ff6b6b';
+					ctx.lineWidth = 2;
+
+					ctx.beginPath();
+					const tempData = this.chartData.series[0].data;
+					const tempMax = 50;
+					const tempMin = 0;
+					const tempRange = tempMax - tempMin;
+
+					for (let i = 0; i < tempData.length; i++) {
+						const x = 50 + (canvasWidth - 100) * (i / (tempData.length - 1));
+						const y = canvasHeight - 50 - (tempData[i] - tempMin) / tempRange * (canvasHeight - 80);
+
+						if (i === 0) {
+							ctx.moveTo(x, y);
+						} else {
+							ctx.lineTo(x, y);
+						}
+					}
+					ctx.stroke();
+
+					// 温度数据 - 再绘制数据点
+					ctx.fillStyle = '#ff6b6b';
+					for (let i = 0; i < tempData.length; i++) {
+						const x = 50 + (canvasWidth - 100) * (i / (tempData.length - 1));
+						const y = canvasHeight - 50 - (tempData[i] - tempMin) / tempRange * (canvasHeight - 80);
+
+						ctx.beginPath();
+						ctx.arc(x, y, 3, 0, 2 * Math.PI);
+						ctx.fill();
+					}
+
+					// 湿度数据 - 先绘制线条
+					ctx.strokeStyle = '#4ecdc4';
+					ctx.lineWidth = 2;
+
+					ctx.beginPath();
+					const humiData = this.chartData.series[1].data;
+					const humiMax = 100;
+					const humiMin = 0;
+					const humiRange = humiMax - humiMin;
+
+					for (let i = 0; i < humiData.length; i++) {
+						const x = 50 + (canvasWidth - 100) * (i / (humiData.length - 1));
+						const y = canvasHeight - 50 - (humiData[i] - humiMin) / humiRange * (canvasHeight - 80);
+
+						if (i === 0) {
+							ctx.moveTo(x, y);
+						} else {
+							ctx.lineTo(x, y);
+						}
+					}
+					ctx.stroke();
+
+					// 湿度数据 - 再绘制数据点
+					ctx.fillStyle = '#4ecdc4';
+					for (let i = 0; i < humiData.length; i++) {
+						const x = 50 + (canvasWidth - 100) * (i / (humiData.length - 1));
+						const y = canvasHeight - 50 - (humiData[i] - humiMin) / humiRange * (canvasHeight - 80);
+
+						ctx.beginPath();
+						ctx.arc(x, y, 3, 0, 2 * Math.PI);
+						ctx.fill();
+					}
+				}
+
+				// 绘制图例
+				ctx.font = '12px Arial';
+				ctx.textAlign = 'left';
+
+				// 温度图例
+				ctx.fillStyle = '#ff6b6b';
+				ctx.fillRect(100, 30, 10, 10);
+				ctx.fillStyle = '#6d6d6d';
+				ctx.fillText('温度(℃)', 120, 40);
+
+				// 湿度图例
+				ctx.fillStyle = '#4ecdc4';
+				ctx.fillRect(200, 30, 10, 10);
+				ctx.fillStyle = '#6d6d6d';
+				ctx.fillText('湿度(%)', 220, 40);
+
+				// 绘制Y轴标签
+				ctx.font = '10px Arial';
+				ctx.textAlign = 'right';
+
+				// 温度Y轴标签
+				for (let i = 0; i <= 5; i++) {
+					const y = 30 + i * (canvasHeight - 80) / 5;
+					const value = 50 - i * 10;
+					ctx.fillText(value, 45, y + 4);
+				}
+
+				// 湿度Y轴标签
+				ctx.textAlign = 'left';
+				for (let i = 0; i <= 5; i++) {
+					const y = 30 + i * (canvasHeight - 80) / 5;
+					const value = 100 - i * 20;
+					ctx.fillText(value, canvasWidth - 45, y + 4);
+				}
+
+				// 绘制X轴标签
+				ctx.textAlign = 'center';
+				const categories = this.chartData.categories;
+				for (let i = 0; i < categories.length; i++) {
+					const x = 50 + (canvasWidth - 100) * (i / (categories.length - 1));
+					ctx.fillText(categories[i], x, canvasHeight - 30);
+				}
+
+				// 绘制完成
+				ctx.draw();
+			},
+
 			// 开始数据更新
 			startDataUpdate() {
 				// 首次获取设备数据
@@ -157,15 +335,51 @@
 										this.temperature = item.value;
 										break;
 									case 'humidity':
-								this.humi = item.value;
-								break;
+										this.humi = item.value;
+										break;
 								}
 							});
+
+							// 更新图表数据
+							this.updateChartData();
 						}
 
 
 					},
 				});
+			},
+
+			// 更新图表数据
+			updateChartData() {
+				// 获取当前时间
+				const now = new Date();
+				const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' + now.getMinutes() : now.getMinutes()) + ':' + (now.getSeconds() < 10 ? '0' + now.getSeconds() : now.getSeconds());
+
+				// 添加时间标签
+				this.chartData.categories.push(time);
+				// 限制显示的数据点数量
+				if (this.chartData.categories.length > 10) {
+					this.chartData.categories.shift();
+				}
+
+				// 添加温度数据
+				if (this.temperature !== '--') {
+					this.chartData.series[0].data.push(this.temperature);
+					if (this.chartData.series[0].data.length > 10) {
+						this.chartData.series[0].data.shift();
+					}
+				}
+
+				// 添加湿度数据
+				if (this.humi !== '--') {
+					this.chartData.series[1].data.push(this.humi);
+					if (this.chartData.series[1].data.length > 10) {
+						this.chartData.series[1].data.shift();
+					}
+				}
+
+				// 更新图表
+				this.updateChart();
 			},
 
 			// 滑动条变化事件的方法
@@ -410,5 +624,28 @@
 		color: #333;
 		width: 100%;
 		text-align: center;
+	}
+
+	/* 图表区域样式 */
+	.chart-area {
+		margin-top: 30rpx;
+		background-color: #ffffff;
+		border-radius: 30rpx;
+		padding: 20rpx;
+		box-shadow: 0 0 15rpx #ccc;
+	}
+
+	/* 图表标题样式 */
+	.chart-title {
+		font-size: 24rpx;
+		color: #6d6d6d;
+		text-align: center;
+		margin-bottom: 20rpx;
+	}
+
+	/* 图表容器样式 */
+	.chart-container {
+		width: 100%;
+		height: 300px;
 	}
 </style>
