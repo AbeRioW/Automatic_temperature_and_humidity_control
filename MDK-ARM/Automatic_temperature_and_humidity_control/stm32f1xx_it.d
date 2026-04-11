@@ -25,4 +25,8 @@ automatic_temperature_and_humidity_control\stm32f1xx_it.o: ../Drivers/STM32F1xx_
 automatic_temperature_and_humidity_control\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 automatic_temperature_and_humidity_control\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 automatic_temperature_and_humidity_control\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+automatic_temperature_and_humidity_control\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 automatic_temperature_and_humidity_control\stm32f1xx_it.o: ../Core/Inc/stm32f1xx_it.h
+automatic_temperature_and_humidity_control\stm32f1xx_it.o: ../APP/esp8266.h
+automatic_temperature_and_humidity_control\stm32f1xx_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+automatic_temperature_and_humidity_control\stm32f1xx_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

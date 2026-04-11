@@ -1,0 +1,10 @@
+automatic_temperature_and_humidity_control\cjson.o: ..\APP\cJSON.c
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\float.h
+automatic_temperature_and_humidity_control\cjson.o: ..\APP\cJSON.h
+automatic_temperature_and_humidity_control\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h

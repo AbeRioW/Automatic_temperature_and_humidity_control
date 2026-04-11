@@ -25,8 +25,15 @@ automatic_temperature_and_humidity_control\main.o: ../Drivers/STM32F1xx_HAL_Driv
 automatic_temperature_and_humidity_control\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 automatic_temperature_and_humidity_control\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 automatic_temperature_and_humidity_control\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+automatic_temperature_and_humidity_control\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+automatic_temperature_and_humidity_control\main.o: ../Core/Inc/dma.h
+automatic_temperature_and_humidity_control\main.o: ../Core/Inc/usart.h
 automatic_temperature_and_humidity_control\main.o: ../Core/Inc/gpio.h
 automatic_temperature_and_humidity_control\main.o: ../APP/oled.h
 automatic_temperature_and_humidity_control\main.o: ../APP/ds1302.h
 automatic_temperature_and_humidity_control\main.o: ../APP/DHT11.h
 automatic_temperature_and_humidity_control\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+automatic_temperature_and_humidity_control\main.o: ../APP/esp8266.h
+automatic_temperature_and_humidity_control\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+automatic_temperature_and_humidity_control\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+automatic_temperature_and_humidity_control\main.o: ../APP/mqtt_publisher.h

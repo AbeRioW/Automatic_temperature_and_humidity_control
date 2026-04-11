@@ -2,9 +2,12 @@
 "automatic_temperature_and_humidity_control\startup_stm32f103xb.o"
 "automatic_temperature_and_humidity_control\main.o"
 "automatic_temperature_and_humidity_control\gpio.o"
+"automatic_temperature_and_humidity_control\dma.o"
+"automatic_temperature_and_humidity_control\usart.o"
 "automatic_temperature_and_humidity_control\stm32f1xx_it.o"
 "automatic_temperature_and_humidity_control\stm32f1xx_hal_msp.o"
 "automatic_temperature_and_humidity_control\stm32f1xx_hal_gpio_ex.o"
+"automatic_temperature_and_humidity_control\stm32f1xx_hal_uart.o"
 "automatic_temperature_and_humidity_control\stm32f1xx_hal.o"
 "automatic_temperature_and_humidity_control\stm32f1xx_hal_rcc.o"
 "automatic_temperature_and_humidity_control\stm32f1xx_hal_rcc_ex.o"
@@ -19,6 +22,9 @@
 "automatic_temperature_and_humidity_control\oled.o"
 "automatic_temperature_and_humidity_control\ds1302.o"
 "automatic_temperature_and_humidity_control\dht11.o"
+"automatic_temperature_and_humidity_control\cjson.o"
+"automatic_temperature_and_humidity_control\esp8266.o"
+"automatic_temperature_and_humidity_control\mqtt_publisher.o"
 --strict --scatter "Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

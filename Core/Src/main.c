@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -26,6 +28,8 @@
 #include "ds1302.h"
 #include "DHT11.h"
 #include <stdio.h>
+#include "esp8266.h"
+#include "mqtt_publisher.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,10 +65,9 @@
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN EV */
-// 外部变量声明，用于中断处理
-extern uint8_t keyPressed;
-/* USER CODE END EV */
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -429,7 +432,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  uint8_t wifi_try = 0, mqtt_try = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -450,8 +453,46 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+	
+  MX_DMA_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  
+		  HAL_GPIO_WritePin(GPIOB, LAY_COLD_Pin|LAY_FAN_Pin|LAY_WUHUA_Pin, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOA,LAY_HOT_Pin, GPIO_PIN_RESET);
+	  OLED_Init();
+  DS1302_Init();
+  DHT11_Init();
+
+  	ESP8266_Init();
+		  //WIFI连接
+  while (wifi_try < 5 && !ESP8266_ConnectWiFi())
+  {
+      wifi_try++;
+      HAL_Delay(1000);
+  }
+	
+	  //上云
+	if(ESP8266_ConnectCloud()==false)
+	{
+		  while(1);
+	}
+	HAL_Delay(5000);
+	ESP8266_Clear();
+	OLED_Clear();
+	
+	//订阅
+	if(!ESP8266_MQTT_Subscribe(MQTT_TOPIC_POST_REPLY,1))
+	{
+		  while(1);
+	}
+	
+	//发布
+		if(!ESP8266_MQTT_Subscribe(MQTT_TOPIC_SET,0))
+	{
+		  while(1);
+	}
+	
+	
   // 初始化继电器引脚为输出
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   
@@ -486,9 +527,7 @@ int main(void)
   fanStatus = DEVICE_OFF;
   wuhuaStatus = DEVICE_OFF;
   
-  OLED_Init();
-  DS1302_Init();
-  DHT11_Init();
+
   
 //  OLED_ShowString(0,0,(uint8_t*)"hello",8,1);
 //  OLED_Refresh();
@@ -502,6 +541,14 @@ int main(void)
     // 读取时间和温湿度数据
     DS1302_GetTime(&currentTime);
     DHT11_ReadData(&dht11Data);
+    
+    // 发送温湿度数据到MQTT
+    char temp_str[10];
+    char humid_str[10];
+    sprintf(temp_str, "%d.%d", dht11Data.temperature, dht11Data.temperature_dec);
+    sprintf(humid_str, "%d.%d", dht11Data.humidity, dht11Data.humidity_dec);
+    MQTT_Publish_temp(temp_str);
+    MQTT_Publish_humidity(humid_str);
     
     // 启动计数器，系统运行10秒后标记为就绪
     startupCounter++;

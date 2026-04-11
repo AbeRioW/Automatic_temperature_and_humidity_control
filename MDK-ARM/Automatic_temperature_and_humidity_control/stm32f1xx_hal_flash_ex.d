@@ -24,3 +24,4 @@ automatic_temperature_and_humidity_control\stm32f1xx_hal_flash_ex.o: ../Drivers/
 automatic_temperature_and_humidity_control\stm32f1xx_hal_flash_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 automatic_temperature_and_humidity_control\stm32f1xx_hal_flash_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 automatic_temperature_and_humidity_control\stm32f1xx_hal_flash_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+automatic_temperature_and_humidity_control\stm32f1xx_hal_flash_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
