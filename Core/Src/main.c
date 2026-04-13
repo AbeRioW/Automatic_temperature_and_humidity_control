@@ -176,51 +176,54 @@ void AutoControlLogic(void)
         if(heaterStatus == DEVICE_ON) ControlDevice(1, DEVICE_OFF);
         if(coolerStatus == DEVICE_ON) ControlDevice(2, DEVICE_OFF);
         if(fanStatus == DEVICE_ON) ControlDevice(3, DEVICE_OFF);
+        if(wuhuaStatus == DEVICE_ON) ControlDevice(4, DEVICE_OFF);
         return;
     }
     
     if(currentMode == MODE_AUTO)
     {
-        // 安全保护：确保加热器和制冷片不同时工作
-        if(heaterStatus == DEVICE_ON)
-        {
-            ControlDevice(2, DEVICE_OFF); // 关闭制冷片
-        }
-        if(coolerStatus == DEVICE_ON)
-        {
-            ControlDevice(1, DEVICE_OFF); // 关闭加热器
-        }
-        
-        // 温度控制
+        // 温度控制优先级最高
         if(dht11Data.temperature < tempMin)
         {
-            // 温度低于下限，开启加热器
+            // 温度低于下限，开启加热器，关闭其他所有设备
             ControlDevice(1, DEVICE_ON);
             ControlDevice(2, DEVICE_OFF);
+            ControlDevice(3, DEVICE_OFF);
+            ControlDevice(4, DEVICE_OFF);
         }
         else if(dht11Data.temperature > tempMax)
         {
-            // 温度高于上限，开启制冷片
+            // 温度高于上限，开启制冷片，关闭其他所有设备
             ControlDevice(1, DEVICE_OFF);
             ControlDevice(2, DEVICE_ON);
+            ControlDevice(3, DEVICE_OFF);
+            ControlDevice(4, DEVICE_OFF);
         }
         else
         {
-            // 温度在正常范围内，关闭加热和制冷
+            // 温度在正常范围内，关闭加热和制冷，进行湿度控制
             ControlDevice(1, DEVICE_OFF);
             ControlDevice(2, DEVICE_OFF);
-        }
-        
-        // 湿度控制
-        if(dht11Data.humidity > humidMax)
-        {
-            // 湿度高于上限，开启风扇除湿
-            ControlDevice(3, DEVICE_ON);
-        }
-        else
-        {
-            // 湿度正常，关闭风扇
-            ControlDevice(3, DEVICE_OFF);
+            
+            // 湿度控制
+            if(dht11Data.humidity > humidMax)
+            {
+                // 湿度高于上限，开启风扇除湿，关闭雾化器
+                ControlDevice(3, DEVICE_ON);
+                ControlDevice(4, DEVICE_OFF);
+            }
+            else if(dht11Data.humidity < 30) // 假设湿度下限为30%
+            {
+                // 湿度低于阈值，开启雾化器，关闭风扇
+                ControlDevice(3, DEVICE_OFF);
+                ControlDevice(4, DEVICE_ON);
+            }
+            else
+            {
+                // 湿度正常，关闭风扇和雾化器
+                ControlDevice(3, DEVICE_OFF);
+                ControlDevice(4, DEVICE_OFF);
+            }
         }
     }
 }
@@ -355,11 +358,39 @@ void ProcessKeyPress(uint8_t key)
             }
             else if(key == KEY4_PRESSED)
             {
-                // 手动控制设备（循环开启）
-                if(heaterStatus == DEVICE_OFF) ControlDevice(1, DEVICE_ON);
-                else if(coolerStatus == DEVICE_OFF) ControlDevice(2, DEVICE_ON);
-                else if(fanStatus == DEVICE_OFF) ControlDevice(3, DEVICE_ON);
-                else if(wuhuaStatus == DEVICE_OFF) ControlDevice(4, DEVICE_ON);
+                // 手动控制设备（循环开启，确保互斥）
+                if(heaterStatus == DEVICE_OFF)
+                {
+                    // 开启加热器，关闭其他所有设备
+                    ControlDevice(1, DEVICE_ON);
+                    ControlDevice(2, DEVICE_OFF);
+                    ControlDevice(3, DEVICE_OFF);
+                    ControlDevice(4, DEVICE_OFF);
+                }
+                else if(coolerStatus == DEVICE_OFF)
+                {
+                    // 开启制冷片，关闭其他所有设备
+                    ControlDevice(1, DEVICE_OFF);
+                    ControlDevice(2, DEVICE_ON);
+                    ControlDevice(3, DEVICE_OFF);
+                    ControlDevice(4, DEVICE_OFF);
+                }
+                else if(fanStatus == DEVICE_OFF)
+                {
+                    // 开启风扇，关闭其他所有设备
+                    ControlDevice(1, DEVICE_OFF);
+                    ControlDevice(2, DEVICE_OFF);
+                    ControlDevice(3, DEVICE_ON);
+                    ControlDevice(4, DEVICE_OFF);
+                }
+                else if(wuhuaStatus == DEVICE_OFF)
+                {
+                    // 开启雾化器，关闭其他所有设备
+                    ControlDevice(1, DEVICE_OFF);
+                    ControlDevice(2, DEVICE_OFF);
+                    ControlDevice(3, DEVICE_OFF);
+                    ControlDevice(4, DEVICE_ON);
+                }
             }
             break;
             

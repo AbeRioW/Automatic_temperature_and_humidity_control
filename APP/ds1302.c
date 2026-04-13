@@ -250,7 +250,34 @@ void DS1302_GetTime(DS1302_Time *time)
     time->day = (temp >> 4) * 10 + (temp & 0x0F);
     
     temp = DS1302_ReadByte(DS1302_HOUR_REG);
-    time->hour = (temp >> 4) * 10 + (temp & 0x0F);
+    // 检查是否为12小时制
+    if (temp & 0x80) {
+        // 12小时制
+        uint8_t hour_val = (temp >> 4) * 10 + (temp & 0x0F);
+        // 检查是否为PM
+        if (temp & 0x40) {
+            // PM，小时值加12
+            time->hour = hour_val + 12;
+            // 处理12:00 PM的特殊情况
+            if (time->hour == 24) {
+                time->hour = 12;
+            }
+        } else {
+            // AM
+            time->hour = hour_val;
+            // 处理12:00 AM的特殊情况
+            if (time->hour == 12) {
+                time->hour = 0;
+            }
+        }
+    } else {
+        // 24小时制
+        time->hour = (temp >> 4) * 10 + (temp & 0x0F);
+    }
+    // 确保小时值在0-23范围内
+    if (time->hour > 23) {
+        time->hour = 0;
+    }
     
     temp = DS1302_ReadByte(DS1302_MINUTE_REG);
     time->minute = (temp >> 4) * 10 + (temp & 0x0F);

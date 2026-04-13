@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Automatic_temperature_and_humidity_control\Automatic_temperature_and_humidity_control.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sat Apr 11 16:08:04 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Mon Apr 13 18:11:40 2026
 <BR><P>
 <H3>Maximum Stack Usage =       1528 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -608,7 +608,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_exit_exit
 </UL>
 
-<P><STRONG><a name="[6f]"></a>AutoControlLogic</STRONG> (Thumb, 152 bytes, Stack size 16 bytes, main.o(i.AutoControlLogic))
+<P><STRONG><a name="[6f]"></a>AutoControlLogic</STRONG> (Thumb, 182 bytes, Stack size 16 bytes, main.o(i.AutoControlLogic))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = AutoControlLogic
 </UL>
 <BR>[Calls]<UL><LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ControlDevice
@@ -720,7 +720,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DS1302_ReadByte
 </UL>
 
-<P><STRONG><a name="[7e]"></a>DS1302_GetTime</STRONG> (Thumb, 160 bytes, Stack size 8 bytes, ds1302.o(i.DS1302_GetTime))
+<P><STRONG><a name="[7e]"></a>DS1302_GetTime</STRONG> (Thumb, 216 bytes, Stack size 8 bytes, ds1302.o(i.DS1302_GetTime))
 <BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = DS1302_GetTime &rArr; DS1302_ReadByte &rArr; DS1302_DAT_SetOutput &rArr; HAL_GPIO_Init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DS1302_ReadByte
@@ -1394,8 +1394,8 @@ Global Symbols
 <P><STRONG><a name="[11]"></a>PendSV_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f1xx_it.o(i.PendSV_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f103xb.o(RESET)
 </UL>
-<P><STRONG><a name="[c6]"></a>ProcessKeyPress</STRONG> (Thumb, 282 bytes, Stack size 8 bytes, main.o(i.ProcessKeyPress))
-<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = ProcessKeyPress
+<P><STRONG><a name="[c6]"></a>ProcessKeyPress</STRONG> (Thumb, 366 bytes, Stack size 16 bytes, main.o(i.ProcessKeyPress))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = ProcessKeyPress
 </UL>
 <BR>[Calls]<UL><LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ControlDevice
 </UL>

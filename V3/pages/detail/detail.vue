@@ -36,13 +36,24 @@
 			</view>
 		</view>
 		
-		<!-- 运动控制区域 -->
-		<view class="move-controls">
-			<view class="move-buttons">
-				<button class="move-button" @click="move(5)">语音报警</button>
-				<button class="move-button" :class="{'buzzer-on': buzzer}" @click="toggleBuzzer">蜂鸣器报警</button>
+		<!-- 工作模式切换区域 -->
+		<view class="mode-controls">
+			<view class="mode-title">工作模式</view>
+			<view class="mode-buttons">
+				<button class="mode-button" :class="{'active': mode === 'auto'}" @click="setMode('auto')">自动模式</button>
+				<button class="mode-button" :class="{'active': mode === 'manual'}" @click="setMode('manual')">手动模式</button>
 			</view>
+		</view>
 
+		<!-- 设备控制区域 -->
+		<view class="device-controls">
+			<view class="control-title">设备控制</view>
+			<view class="control-buttons">
+				<button class="control-button" :class="{'active': heater}" @click="toggleHeater">加热片: {{heater ? '开启' : '关闭'}}</button>
+				<button class="control-button" :class="{'active': cooler}" @click="toggleCooler">制冷片: {{cooler ? '开启' : '关闭'}}</button>
+				<button class="control-button" :class="{'active': fan}" @click="toggleFan">风扇: {{fan ? '开启' : '关闭'}}</button>
+				<button class="control-button" :class="{'active': atomizer}" @click="toggleAtomizer">雾化器: {{atomizer ? '开启' : '关闭'}}</button>
+			</view>
 		</view>
 	</view>
 </template>
@@ -68,36 +79,35 @@
 		data() {
 			return {
 				// 温度、湿度状态
-				temperature: '--',
-				humi: '--',
-				// 接口请求token
-				token: '',
-				// 湿度和温度的阈值
-				humi_th: 70,
-				temp_th: 28,
-				// 控制状态
-				led: false,
-				buzzer: false,
-				Car_flag: null,
-				currentAction: '待命',
-				key_th: {},
-				// 数据更新定时器
-				dataTimer: null,
-				// 图表相关
-				chart: null,
-				chartData: {
-					categories: [],
-					series: [
-						{
-							name: '温度',
-							data: []
-						},
-						{
-							name: '湿度',
-							data: []
-						}
-					]
-				}
+			temperature: '--',
+			humi: '--',
+			// 接口请求token
+			token: '',
+			// 湿度和温度的阈值
+			humi_th: 70,
+			temp_th: 28,
+			// 控制状态
+			mode: 'auto', // 工作模式：auto-自动，manual-手动
+			heater: false, // 加热片状态
+			cooler: false, // 制冷片状态
+			fan: false, // 风扇状态
+			atomizer: false, // 雾化器状态
+			// 数据更新定时器
+			dataTimer: null,
+			// 图表相关
+			chartData: {
+				categories: [],
+				series: [
+					{
+						name: '温度',
+						data: []
+					},
+					{
+						name: '湿度',
+						data: []
+					}
+				]
+			}
 			}
 		},
 
@@ -382,50 +392,10 @@
 				this.updateChart();
 			},
 
-			// 滑动条变化事件的方法
-			sliderChange(e, id) {
-				console.log(id)
-				console.log('value 发生变化：' + e.detail.value)
-
-				// 设置对应滑动条的操作标志
-				if (id == 'slider1') {
-
-					this.temp_th = e.detail.value;
-					this.key_th = {
-						temp_th: this.temp_th,
-					};
-				} else if (id == 'slider2') {
-
-					this.humi_th = e.detail.value;
-					this.key_th = {
-						humi_th: this.humi_th,
-					};
-				}
-
-				// 向后端发送设备属性更新请求
-				uni.request({
-					url: 'https://iot-api.heclouds.com/thingmodel/set-device-property',
-					method: 'POST',
-					data: {
-						product_id: product_id,
-						device_name: device_name,
-						params: this.key_th
-					},
-					header: {
-						'authorization': this.token
-					},
-				});
-			},
-
-			// 消毒开关切换的方法
-			onLedSwitch(event) {
-				// 正确获取开关值并打印
-				let value = event.detail.value;
-
-
-				this.led = value; // 立即更新本地状态
-
-				// 发送请求更新设备属性
+			// 设置工作模式
+			setMode(mode) {
+				this.mode = mode;
+				// 向后端发送工作模式更新请求
 				uni.request({
 					url: 'https://iot-api.heclouds.com/thingmodel/set-device-property',
 					method: 'POST',
@@ -433,26 +403,19 @@
 						product_id: product_id,
 						device_name: device_name,
 						params: {
-							"led": value
+							"mode": mode === 'auto' ? 1 : 0
 						}
 					},
 					header: {
 						'authorization': this.token
 					}
-
 				});
 			},
-			// 运动控制
-			move(action) {
-				const actions = ['前进', '左转', '停止', '右转', '后退', '避障模式', '循迹模式'];
-				this.currentAction = actions[action];
-				this.Car_flag = action;
 
-				this.uploadCarFlag();
-			},
-
-			// 上传Car_flag
-			uploadCarFlag() {
+			// 切换加热片状态
+			toggleHeater() {
+				this.heater = !this.heater;
+				// 向后端发送加热片状态更新请求
 				uni.request({
 					url: 'https://iot-api.heclouds.com/thingmodel/set-device-property',
 					method: 'POST',
@@ -460,17 +423,19 @@
 						product_id: product_id,
 						device_name: device_name,
 						params: {
-							"Car_flag": this.Car_flag
+							"heater": this.heater ? 1 : 0
 						}
 					},
 					header: {
 						'authorization': this.token
-					},
+					}
 				});
 			},
 
-			toggleBuzzer() {
-				this.buzzer = !this.buzzer;
+			// 切换制冷片状态
+			toggleCooler() {
+				this.cooler = !this.cooler;
+				// 向后端发送制冷片状态更新请求
 				uni.request({
 					url: 'https://iot-api.heclouds.com/thingmodel/set-device-property',
 					method: 'POST',
@@ -478,12 +443,52 @@
 						product_id: product_id,
 						device_name: device_name,
 						params: {
-							"SET1": this.buzzer ? 1 : 0
+							"cooler": this.cooler ? 1 : 0
 						}
 					},
 					header: {
 						'authorization': this.token
+					}
+				});
+			},
+
+			// 切换风扇状态
+			toggleFan() {
+				this.fan = !this.fan;
+				// 向后端发送风扇状态更新请求
+				uni.request({
+					url: 'https://iot-api.heclouds.com/thingmodel/set-device-property',
+					method: 'POST',
+					data: {
+						product_id: product_id,
+						device_name: device_name,
+						params: {
+							"fan": this.fan ? 1 : 0
+						}
 					},
+					header: {
+						'authorization': this.token
+					}
+				});
+			},
+
+			// 切换雾化器状态
+			toggleAtomizer() {
+				this.atomizer = !this.atomizer;
+				// 向后端发送雾化器状态更新请求
+				uni.request({
+					url: 'https://iot-api.heclouds.com/thingmodel/set-device-property',
+					method: 'POST',
+					data: {
+						product_id: product_id,
+						device_name: device_name,
+						params: {
+							"atomizer": this.atomizer ? 1 : 0
+						}
+					},
+					header: {
+						'authorization': this.token
+					}
 				});
 			}
 		}
@@ -647,5 +652,85 @@
 	.chart-container {
 		width: 100%;
 		height: 300px;
+	}
+
+	/* 工作模式切换区域样式 */
+	.mode-controls {
+		margin-top: 30rpx;
+		background-color: #ffffff;
+		border-radius: 30rpx;
+		padding: 20rpx;
+		box-shadow: 0 0 15rpx #ccc;
+	}
+
+	/* 工作模式标题样式 */
+	.mode-title {
+		font-size: 24rpx;
+		color: #6d6d6d;
+		text-align: center;
+		margin-bottom: 20rpx;
+	}
+
+	/* 工作模式按钮容器样式 */
+	.mode-buttons {
+		display: flex;
+		justify-content: center;
+		gap: 20rpx;
+	}
+
+	/* 工作模式按钮样式 */
+	.mode-button {
+		width: 150rpx;
+		height: 80rpx;
+		font-size: 20rpx;
+		background-color: #f0f0f0;
+		color: #6d6d6d;
+	}
+
+	/* 工作模式按钮激活状态样式 */
+	.mode-button.active {
+		background-color: #4CAF50;
+		color: #ffffff;
+	}
+
+	/* 设备控制区域样式 */
+	.device-controls {
+		margin-top: 30rpx;
+		background-color: #ffffff;
+		border-radius: 30rpx;
+		padding: 20rpx;
+		box-shadow: 0 0 15rpx #ccc;
+	}
+
+	/* 设备控制标题样式 */
+	.control-title {
+		font-size: 24rpx;
+		color: #6d6d6d;
+		text-align: center;
+		margin-bottom: 20rpx;
+	}
+
+	/* 设备控制按钮容器样式 */
+	.control-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 15rpx;
+	}
+
+	/* 设备控制按钮样式 */
+	.control-button {
+		flex: 1;
+		min-width: 300rpx;
+		height: 80rpx;
+		font-size: 20rpx;
+		background-color: #f0f0f0;
+		color: #6d6d6d;
+	}
+
+	/* 设备控制按钮激活状态样式 */
+	.control-button.active {
+		background-color: #4CAF50;
+		color: #ffffff;
 	}
 </style>
